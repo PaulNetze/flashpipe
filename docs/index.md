@@ -2,28 +2,34 @@
 
 # FlashPipe Documentation
 
-_FlashPipe_ is a public [Docker image](https://hub.docker.com/r/engswee/flashpipe) that provides Continuous
-Integration (CI) & Continuous Delivery/Deployment (CD) capabilities for SAP Integration Suite.
+_FlashPipe_ is a CI/CD companion for SAP Integration Suite, providing automation capabilities for integration artifact deployment and management.
 
-## Command Documentation
+## Quick Start
 
+- **[Orchestrator Quick Start](orchestrator-quickstart.md)** - Deploy in 30 seconds
+- **[OAuth Client Setup](oauth_client.md)** - Configure authentication
+
+## Commands
+
+### Core Commands
 - **[Orchestrator](orchestrator.md)** - High-level deployment orchestration
-- **[Configure](configure.md)** - Configure artifact parameters with YAML
+- **[Configure](configure.md)** - Configure artifact parameters
 - **[Config Generate](config-generate.md)** - Auto-generate deployment configs
 - **[Partner Directory](partner-directory.md)** - Manage Partner Directory parameters
+
+### Reference
 - **[FlashPipe CLI](flashpipe-cli.md)** - Complete CLI reference
 
-## Getting Started
+## CI/CD Integration
 
-- **[Orchestrator Quick Start](orchestrator-quickstart.md)** - Get started in 30 seconds
-- **[OAuth Client Setup](oauth_client.md)** - Configure authentication
-- **[GitHub Actions Integration](documentation.md)** - CI/CD pipeline examples
+- **[GitHub Actions](github-actions.md)** - GitHub Actions workflows
+- **[Azure Pipelines](azure-pipelines.md)** - Azure DevOps integration
 
-## Additional Resources
+## Resources
 
-- **[Release Notes](release-notes.md)** - Version history
-- **[Examples](examples/)** - Configuration examples
+- **[Release Notes](release-notes.md)** - Version history and changelog
+- **[Example Configurations](examples/)** - Sample YAML files
 
 ## License
 
-_FlashPipe_ is licensed under the terms of Apache License, Version 2.0.
+_FlashPipe_ is licensed under the Apache License, Version 2.0.

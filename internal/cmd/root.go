@@ -77,6 +77,7 @@ func Execute() {
 	rootCmd.AddCommand(NewPDDeployCommand())
 	rootCmd.AddCommand(NewConfigGenerateCommand())
 	rootCmd.AddCommand(NewFlashpipeOrchestratorCommand())
+	rootCmd.AddCommand(NewConfigureCommand())
 
 	err := rootCmd.Execute()
 

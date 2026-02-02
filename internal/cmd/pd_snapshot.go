@@ -159,9 +159,16 @@ func snapshotStringParameters(pdAPI *api.PartnerDirectory, pdRepo *repo.PartnerD
 		paramsByPid[param.Pid] = append(paramsByPid[param.Pid], param)
 	}
 
+	// Log all PIDs found
+	pids := make([]string, 0, len(paramsByPid))
+	for pid := range paramsByPid {
+		pids = append(pids, pid)
+	}
+	log.Info().Msgf("Found %d Partner IDs with string parameters: %v", len(pids), pids)
+
 	// Process each PID
 	for pid, pidParams := range paramsByPid {
-		log.Debug().Msgf("Processing PID: %s with %d string parameters", pid, len(pidParams))
+		log.Info().Msgf("Processing string parameters for PID: %s (%d parameters)", pid, len(pidParams))
 
 		if err := pdRepo.WriteStringParameters(pid, pidParams, replace); err != nil {
 			return 0, fmt.Errorf("failed to write string parameters for PID %s: %w", pid, err)
@@ -198,9 +205,16 @@ func snapshotBinaryParameters(pdAPI *api.PartnerDirectory, pdRepo *repo.PartnerD
 		paramsByPid[param.Pid] = append(paramsByPid[param.Pid], param)
 	}
 
+	// Log all PIDs found
+	pids := make([]string, 0, len(paramsByPid))
+	for pid := range paramsByPid {
+		pids = append(pids, pid)
+	}
+	log.Info().Msgf("Found %d Partner IDs with binary parameters: %v", len(pids), pids)
+
 	// Process each PID
 	for pid, pidParams := range paramsByPid {
-		log.Debug().Msgf("Processing PID: %s with %d binary parameters", pid, len(pidParams))
+		log.Info().Msgf("Processing binary parameters for PID: %s (%d parameters)", pid, len(pidParams))
 
 		if err := pdRepo.WriteBinaryParameters(pid, pidParams, replace); err != nil {
 			return 0, fmt.Errorf("failed to write binary parameters for PID %s: %w", pid, err)

@@ -63,80 +63,146 @@ type BatchResult struct {
 
 // GetStringParameters retrieves all string parameters from partner directory
 func (pd *PartnerDirectory) GetStringParameters(selectFields string) ([]StringParameter, error) {
-	path := "/api/v1/StringParameters"
+	basePath := "/api/v1/StringParameters"
+	separator := "?"
 	if selectFields != "" {
-		path += "?$select=" + url.QueryEscape(selectFields)
+		basePath += "?$select=" + url.QueryEscape(selectFields)
+		separator = "&"
 	}
 
-	log.Debug().Msgf("Getting string parameters from %s", path)
+	allParameters := []StringParameter{}
+	skip := 0
+	batchSize := 1000
+	totalCount := -1
 
-	resp, err := pd.exe.ExecGetRequest(path, map[string]string{
-		"Accept": "application/json",
-	})
-	if err != nil {
-		return nil, err
+	for {
+		path := fmt.Sprintf("%s%s$inlinecount=allpages&$top=%d&$skip=%d", basePath, separator, batchSize, skip)
+		log.Debug().Msgf("Getting string parameters from %s", path)
+
+		resp, err := pd.exe.ExecGetRequest(path, map[string]string{
+			"Accept": "application/json",
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("get string parameters failed with response code = %d", resp.StatusCode)
+		}
+
+		body, err := pd.exe.ReadRespBody(resp)
+		if err != nil {
+			return nil, err
+		}
+
+		var result struct {
+			D struct {
+				Results []StringParameter `json:"results"`
+				Count   string            `json:"__count"`
+			} `json:"d"`
+		}
+
+		if err := json.Unmarshal(body, &result); err != nil {
+			return nil, fmt.Errorf("failed to decode response: %w", err)
+		}
+
+		// Parse total count on first iteration
+		if totalCount == -1 && result.D.Count != "" {
+			fmt.Sscanf(result.D.Count, "%d", &totalCount)
+			log.Info().Msgf("Total string parameters available: %d", totalCount)
+		}
+
+		batchCount := len(result.D.Results)
+		allParameters = append(allParameters, result.D.Results...)
+
+		if totalCount > 0 {
+			log.Debug().Msgf("Retrieved %d string parameters in this batch (progress: %d/%d)", batchCount, len(allParameters), totalCount)
+		} else {
+			log.Debug().Msgf("Retrieved %d string parameters in this batch (total so far: %d)", batchCount, len(allParameters))
+		}
+
+		// If we got fewer results than batch size, we've reached the end
+		if batchCount < batchSize {
+			break
+		}
+
+		skip += batchSize
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("get string parameters failed with response code = %d", resp.StatusCode)
-	}
-
-	body, err := pd.exe.ReadRespBody(resp)
-	if err != nil {
-		return nil, err
-	}
-
-	var result struct {
-		D struct {
-			Results []StringParameter `json:"results"`
-		} `json:"d"`
-	}
-
-	if err := json.Unmarshal(body, &result); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
-	}
-
-	log.Debug().Msgf("Retrieved %d string parameters", len(result.D.Results))
-	return result.D.Results, nil
+	log.Info().Msgf("Retrieved %d total string parameters", len(allParameters))
+	return allParameters, nil
 }
 
 // GetBinaryParameters retrieves all binary parameters from partner directory
 func (pd *PartnerDirectory) GetBinaryParameters(selectFields string) ([]BinaryParameter, error) {
-	path := "/api/v1/BinaryParameters"
+	basePath := "/api/v1/BinaryParameters"
+	separator := "?"
 	if selectFields != "" {
-		path += "?$select=" + url.QueryEscape(selectFields)
+		basePath += "?$select=" + url.QueryEscape(selectFields)
+		separator = "&"
 	}
 
-	log.Debug().Msgf("Getting binary parameters from %s", path)
+	allParameters := []BinaryParameter{}
+	skip := 0
+	batchSize := 30 // Binary parameters API has a lower limit than string parameters
+	totalCount := -1
 
-	resp, err := pd.exe.ExecGetRequest(path, map[string]string{
-		"Accept": "application/json",
-	})
-	if err != nil {
-		return nil, err
+	for {
+		path := fmt.Sprintf("%s%s$inlinecount=allpages&$top=%d&$skip=%d", basePath, separator, batchSize, skip)
+		log.Debug().Msgf("Getting binary parameters from %s", path)
+
+		resp, err := pd.exe.ExecGetRequest(path, map[string]string{
+			"Accept": "application/json",
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("get binary parameters failed with response code = %d", resp.StatusCode)
+		}
+
+		body, err := pd.exe.ReadRespBody(resp)
+		if err != nil {
+			return nil, err
+		}
+
+		var result struct {
+			D struct {
+				Results []BinaryParameter `json:"results"`
+				Count   string            `json:"__count"`
+			} `json:"d"`
+		}
+
+		if err := json.Unmarshal(body, &result); err != nil {
+			return nil, fmt.Errorf("failed to decode response: %w", err)
+		}
+
+		// Parse total count on first iteration
+		if totalCount == -1 && result.D.Count != "" {
+			fmt.Sscanf(result.D.Count, "%d", &totalCount)
+			log.Info().Msgf("Total binary parameters available: %d", totalCount)
+		}
+
+		batchCount := len(result.D.Results)
+		allParameters = append(allParameters, result.D.Results...)
+
+		if totalCount > 0 {
+			log.Debug().Msgf("Retrieved %d binary parameters in this batch (progress: %d/%d)", batchCount, len(allParameters), totalCount)
+		} else {
+			log.Debug().Msgf("Retrieved %d binary parameters in this batch (total so far: %d)", batchCount, len(allParameters))
+		}
+
+		// If we got fewer results than batch size, we've reached the end
+		if batchCount < batchSize {
+			break
+		}
+
+		skip += batchSize
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("get binary parameters failed with response code = %d", resp.StatusCode)
-	}
-
-	body, err := pd.exe.ReadRespBody(resp)
-	if err != nil {
-		return nil, err
-	}
-
-	var result struct {
-		D struct {
-			Results []BinaryParameter `json:"results"`
-		} `json:"d"`
-	}
-
-	if err := json.Unmarshal(body, &result); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
-	}
-
-	log.Debug().Msgf("Retrieved %d binary parameters", len(result.D.Results))
-	return result.D.Results, nil
+	log.Info().Msgf("Retrieved %d total binary parameters", len(allParameters))
+	return allParameters, nil
 }
 
 // GetStringParameter retrieves a single string parameter

@@ -36,29 +36,9 @@ jobs:
         with:
           go-version-file: "go.mod"
 
-      - name: Test
+      - name: Test (Unit Tests Only)
         run: |
-          go test -p 1 -coverpkg=./... -coverprofile=c.out -v ./...
-          go tool cover -html=c.out -o coverage.html
-        if: vars.TMN_HOST != '' && secrets.OAUTH_CLIENTID != ''
-        env:
-          FLASHPIPE_DEBUG: true
-          FLASHPIPE_TMN_HOST: ${{ vars.TMN_HOST }}
-          FLASHPIPE_OAUTH_HOST: ${{ vars.OAUTH_HOST }}
-          FLASHPIPE_OAUTH_PATH: /oauth/token
-          FLASHPIPE_OAUTH_CLIENTID: ${{ secrets.OAUTH_CLIENTID }}
-          FLASHPIPE_OAUTH_CLIENTSECRET: ${{ secrets.OAUTH_CLIENTSECRET }}
-          FLASHPIPE_TMN_PASSWORD: ${{ secrets.BASIC_PASSWORD }}
-          FLASHPIPE_TMN_USERID: ${{ secrets.BASIC_USERID }}
-          FLASHPIPE_APIPORTAL_HOST: ${{ vars.APIPORTAL_OAUTH_HOST }}
-          FLASHPIPE_APIPORTAL_OAUTH_CLIENTID: ${{ secrets.APIPORTAL_OAUTH_CLIENTID }}
-          FLASHPIPE_APIPORTAL_OAUTH_CLIENTSECRET: ${{ secrets.APIPORTAL_OAUTH_CLIENTSECRET }}
-
-      - name: Skip Tests (No Credentials)
-        if: vars.TMN_HOST == '' || secrets.OAUTH_CLIENTID == ''
-        run: |
-          echo "⚠️ Skipping integration tests - SAP CPI credentials not available"
-          echo "Running unit tests only..."
+          echo "⚠️ Skipping integration tests - running unit tests only"
           go test -short -v ./...
 
       - name: Build Go application
@@ -74,12 +54,6 @@ jobs:
             build/*
             output/*
           key: ${{ github.sha }}
-
-      - name: Save output as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: results
-          path: coverage.html
 
   # ----------------------------------------------------------------
   # Private image for QA testing

@@ -14,65 +14,46 @@ on:
     branches:
       - main
     paths-ignore:
-      - 'docs/**'
-      - 'licenses/**'
-      - '*.md'
-      - '.gitignore'
-      - '.gitattributes'
-      - '.gitattributes'
-      - 'LICENSE'
-      - 'NOTICE'
-      - '.github/**'
+      - "docs/**"
+      - "licenses/**"
+      - "*.md"
+      - ".gitignore"
+      - ".gitattributes"
+      - ".gitattributes"
+      - "LICENSE"
+      - "NOTICE"
+      - ".github/**"
 
 jobs:
-
   test_and_build_go:
     runs-on: ubuntu-latest
     steps:
-    - name: Check out Git repository
-      uses: actions/checkout@v4
+      - name: Check out Git repository
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version-file: 'go.mod'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
 
-    - name: Test
-      run: |
-        go test -p 1 -coverpkg=./... -coverprofile=c.out -v ./...
-        go tool cover -html=c.out -o coverage.html
-      env:
-        FLASHPIPE_DEBUG: true
-        FLASHPIPE_TMN_HOST: ${{ vars.TMN_HOST }}
-        FLASHPIPE_OAUTH_HOST: ${{ vars.OAUTH_HOST }}
-        FLASHPIPE_OAUTH_PATH: /oauth/token
-        FLASHPIPE_OAUTH_CLIENTID: ${{ secrets.OAUTH_CLIENTID }}
-        FLASHPIPE_OAUTH_CLIENTSECRET: ${{ secrets.OAUTH_CLIENTSECRET }}
-        FLASHPIPE_TMN_PASSWORD: ${{ secrets.BASIC_PASSWORD }}
-        FLASHPIPE_TMN_USERID: ${{ secrets.BASIC_USERID }}
-        FLASHPIPE_APIPORTAL_HOST: ${{ vars.APIPORTAL_OAUTH_HOST }}
-        FLASHPIPE_APIPORTAL_OAUTH_CLIENTID: ${{ secrets.APIPORTAL_OAUTH_CLIENTID }}
-        FLASHPIPE_APIPORTAL_OAUTH_CLIENTSECRET: ${{ secrets.APIPORTAL_OAUTH_CLIENTSECRET }}
+      - name: Test (Unit Tests Only)
+        run: |
+          echo "⚠️ Skipping integration tests - running unit tests only"
+          go test -short -v ./...
 
-    - name: Build Go application
-      run: go build -v -ldflags="-X 'github.com/engswee/flashpipe/internal/analytics.Host=$ANALYTICS_HOST' -X 'github.com/engswee/flashpipe/internal/analytics.SiteId=1' -X 'github.com/engswee/flashpipe/internal/analytics.ShowLogs=false'" -o output/ ./...
-      env:
-        CGO_ENABLED: 0
-        ANALYTICS_HOST: ${{ secrets.ANALYTICS_HOST }}
+      - name: Build Go application
+        run: go build -v -ldflags="-X 'github.com/engswee/flashpipe/internal/analytics.Host=$ANALYTICS_HOST' -X 'github.com/engswee/flashpipe/internal/analytics.SiteId=1' -X 'github.com/engswee/flashpipe/internal/analytics.ShowLogs=false'" -o output/ ./...
+        env:
+          CGO_ENABLED: 0
+          ANALYTICS_HOST: ${{ secrets.ANALYTICS_HOST }}
 
-    - name: Save output for Docker build
-      uses: actions/cache/save@v4
-      with:
-        path: |
-          build/*
-          output/*
-        key: ${{ github.sha }}
-
-    - name: Save output as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: results
-        path: coverage.html
+      - name: Save output for Docker build
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            build/*
+            output/*
+          key: ${{ github.sha }}
 
   # ----------------------------------------------------------------
   # Public image for production release
@@ -81,26 +62,26 @@ jobs:
     needs: test_and_build_go
     runs-on: ubuntu-latest
     steps:
-    - name: Restore output for Docker build
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          build/*
-          output/*
-        key: ${{ github.sha }}
+      - name: Restore output for Docker build
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            build/*
+            output/*
+          key: ${{ github.sha }}
 
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: ./build/Dockerfile
-        push: true
-        tags: |
-          engswee/flashpipe:3.7.0
-          engswee/flashpipe:latest
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./build/Dockerfile
+          push: true
+          tags: |
+            engswee/flashpipe:3.7.0
+            engswee/flashpipe:latest

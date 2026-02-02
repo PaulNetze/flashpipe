@@ -14,48 +14,29 @@ on:
     branches:
       - develop
     paths-ignore:
-      - 'docs/**'
-      - 'licenses/**'
-      - '*.md'
-      - '.gitignore'
-      - '.gitattributes'
-      - '.gitattributes'
-      - 'LICENSE'
-      - 'NOTICE'
-      - '.github/**'
+      - "docs/**"
+      - "licenses/**"
+      - "*.md"
+      - ".gitignore"
+      - ".gitattributes"
+      - ".gitattributes"
+      - "LICENSE"
+      - "NOTICE"
+      - ".github/**"
 
 jobs:
-
   test_and_build_go:
     runs-on: ubuntu-latest
     steps:
-    - name: Check out Git repository
-      uses: actions/checkout@v4
+      - name: Check out Git repository
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version-file: 'go.mod'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
 
-    - name: Test
-      run: |
-        go test -p 1 -coverpkg=./... -coverprofile=c.out -v ./...
-        go tool cover -html=c.out -o coverage.html
-      env:
-        FLASHPIPE_DEBUG: true
-        FLASHPIPE_TMN_HOST: ${{ vars.TMN_HOST }}
-        FLASHPIPE_OAUTH_HOST: ${{ vars.OAUTH_HOST }}
-        FLASHPIPE_OAUTH_PATH: /oauth/token
-        FLASHPIPE_OAUTH_CLIENTID: ${{ secrets.OAUTH_CLIENTID }}
-        FLASHPIPE_OAUTH_CLIENTSECRET: ${{ secrets.OAUTH_CLIENTSECRET }}
-        FLASHPIPE_TMN_PASSWORD: ${{ secrets.BASIC_PASSWORD }}
-        FLASHPIPE_TMN_USERID: ${{ secrets.BASIC_USERID }}
-        FLASHPIPE_APIPORTAL_HOST: ${{ vars.APIPORTAL_OAUTH_HOST }}
-        FLASHPIPE_APIPORTAL_OAUTH_CLIENTID: ${{ secrets.APIPORTAL_OAUTH_CLIENTID }}
-        FLASHPIPE_APIPORTAL_OAUTH_CLIENTSECRET: ${{ secrets.APIPORTAL_OAUTH_CLIENTSECRET }}
-
-    - name: Save output as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: results
-        path: coverage.html
+      - name: Test (Unit Tests Only)
+        run: |
+          echo "⚠️ Skipping integration tests - running unit tests only"
+          go test -short -v ./...

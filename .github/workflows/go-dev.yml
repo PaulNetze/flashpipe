@@ -22,7 +22,6 @@ on:
       - ".gitattributes"
       - "LICENSE"
       - "NOTICE"
-      - ".github/**"
 
 jobs:
   test_and_build_go:

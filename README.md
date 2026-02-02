@@ -74,6 +74,7 @@ For comprehensive documentation on using _FlashPipe_, visit the [GitHub Pages do
 - **[Orchestrator](docs/orchestrator.md)** - High-level deployment orchestration and workflow management
 - **[Orchestrator Quick Start](docs/orchestrator-quickstart.md)** - Get started with orchestrator in 30 seconds
 - **[Orchestrator YAML Config](docs/orchestrator-yaml-config.md)** - Complete YAML configuration reference
+- **[Configure](docs/configure.md)** - Configure artifact parameters with YAML files
 - **[Config Generate](docs/config-generate.md)** - Automatically generate deployment configurations
 - **[Partner Directory](docs/partner-directory.md)** - Manage Partner Directory parameters
 

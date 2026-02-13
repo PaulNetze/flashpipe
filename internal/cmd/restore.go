@@ -21,8 +21,9 @@ import (
 func NewRestoreCommand() *cobra.Command {
 
 	restoreCmd := &cobra.Command{
-		Use:   "restore",
-		Short: "Restore integration packages from Git to tenant",
+		Use:          "restore",
+		Short:        "Restore integration packages from Git to tenant",
+		SilenceUsage: true,
 		Long: `Restore all editable integration packages from a Git repository to SAP Integration Suite tenant.
 
 Configuration:

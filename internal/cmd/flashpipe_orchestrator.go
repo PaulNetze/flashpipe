@@ -77,7 +77,7 @@ func NewFlashpipeOrchestratorCommand() *cobra.Command {
 	orchestratorCmd := &cobra.Command{
 		Use:          "orchestrator",
 		Short:        "Orchestrate SAP CPI artifact updates and deployments",
-		SilenceUsage: true, // Don't show usage on execution errors
+		SilenceUsage: true,
 		Long: `Orchestrate the complete deployment lifecycle for SAP CPI artifacts.
 
 This command handles:

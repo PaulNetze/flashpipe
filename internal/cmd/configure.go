@@ -61,8 +61,9 @@ func NewConfigureCommand() *cobra.Command {
 	)
 
 	configureCmd := &cobra.Command{
-		Use:   "configure",
-		Short: "Configure SAP CPI artifact parameters",
+		Use:          "configure",
+		Short:        "Configure SAP CPI artifact parameters",
+		SilenceUsage: true,
 		Long: `Configure parameters for SAP CPI artifacts using YAML configuration files.
 
 This command:
@@ -438,6 +439,22 @@ func configureAllArtifacts(exe *httpclnt.HTTPExecuter, cfg *models.ConfigureConf
 			log.Info().Msgf("      Version: %s", artifact.Version)
 			log.Info().Msgf("      Parameters: %d", len(artifact.Parameters))
 
+			// Validate artifact type
+			validTypes := []string{"Integration", "MessageMapping", "ScriptCollection", "ValueMapping"}
+			isValidType := false
+			for _, validType := range validTypes {
+				if artifact.Type == validType {
+					isValidType = true
+					break
+				}
+			}
+			if !isValidType {
+				log.Error().Msgf("      ❌ Invalid artifact type: %s (valid types: %v)", artifact.Type, validTypes)
+				stats.ArtifactsFailed++
+				packageHasError = true
+				continue
+			}
+
 			if dryRun {
 				log.Info().Msg("      [DRY RUN] Would update the following parameters:")
 				for _, param := range artifact.Parameters {
@@ -536,6 +553,8 @@ func updateParametersBatch(exe *httpclnt.HTTPExecuter, configuration *api.Config
 		urlPath := fmt.Sprintf("/api/v1/IntegrationDesigntimeArtifacts(Id='%s',Version='%s')/$links/Configurations('%s')",
 			artifactID, version, param.Key)
 
+		log.Debug().Msgf("      Adding batch operation: %s %s", "PUT", urlPath)
+
 		batch.AddOperation(httpclnt.BatchOperation{
 			Method:    "PUT",
 			Path:      urlPath,
@@ -553,9 +572,11 @@ func updateParametersBatch(exe *httpclnt.HTTPExecuter, configuration *api.Config
 	}
 
 	// Execute batch in chunks
+	log.Debug().Msgf("      Executing batch request with %d parameters (batch size: %d)", validParams, batchSize)
 	resp, err := batch.ExecuteInBatches(batchSize)
 	if err != nil {
 		log.Warn().Msgf("      ⚠️  Batch operation failed: %v, falling back to individual requests", err)
+		log.Debug().Msgf("      Batch failure likely due to SAP CPI API compatibility. Consider using --disable-batch flag or batch.enabled=false in config")
 		return updateParametersIndividual(configuration, artifactID, version, parameters, stats)
 	}
 
@@ -675,6 +696,9 @@ func deployArtifact(exe *httpclnt.HTTPExecuter, task DeploymentTask,
 
 	// Initialize designtime artifact based on type
 	dt := api.NewDesigntimeArtifact(task.ArtifactType, exe)
+	if dt == nil {
+		return fmt.Errorf("unsupported artifact type: %s (valid types: Integration, MessageMapping, ScriptCollection, ValueMapping)", task.ArtifactType)
+	}
 
 	// Initialize runtime artifact for status checking
 	rt := api.NewRuntime(exe)

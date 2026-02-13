@@ -21,8 +21,9 @@ import (
 
 func NewSyncCommand() *cobra.Command {
 	syncCmd := &cobra.Command{
-		Use:   "sync",
-		Short: "Sync designtime artifacts between tenant and Git",
+		Use:          "sync",
+		Short:        "Sync designtime artifacts between tenant and Git",
+		SilenceUsage: true,
 		Long: `Synchronise designtime artifacts between SAP Integration Suite
 tenant and a Git repository.
 
